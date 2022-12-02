@@ -7,7 +7,7 @@ def getPR2value(PWM_freq: float, F_osc: float, TMR2_prescaler: int) -> float:
     condiciones especificadas.
     """
     # Latex: \text{PR2} = \frac{F_{\text{PWM}}}{F_{\text{PWM}} \cdot 4 \cdot \text{TMR2}_{\text{Prescaler}}} - 1
-    return int(F_osc / (PWM_freq * 4 * TMR2_prescaler) - 1)
+    return F_osc / (PWM_freq * 4 * TMR2_prescaler) - 1
 
 
 def get_freq_from_PR2(PR2: int, F_osc: float, TMR2_prescaler: int) -> float:
@@ -48,12 +48,14 @@ def getCCPRxL_CCPxCON(PR2_value, dutyCycle: float) -> Tuple[int, int]:
 
 
 if __name__ == "__main__":
-    PWM_freq = int(20e3) # Frecuencia de conmutación requerida
-    F_osc = int(48e6) # Frecuencia del procesador
-    TMR2_prescaler = 16 # Prescaler del timer 2
+    PWM_freq = int(40e3) # Frecuencia de conmutación requerida
+    F_osc = int(32e6) # Frecuencia del procesador
+    TMR2_prescaler = 1 # Prescaler del timer 2
 
     PR2 = getPR2value(PWM_freq, F_osc, TMR2_prescaler)
     print(f'Valor PR2: {PR2}')
+
+    print(get_freq_from_PR2(PR2, F_osc, TMR2_prescaler))
 
     CCPRxL_CCPxCON_bits = getCCPRxL_CCPxCON(PR2, 0.0)
     print(f'Valor CCPRxL: {CCPRxL_CCPxCON_bits[0]}') # Valor a escribir en CCPRxL
