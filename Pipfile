@@ -11,6 +11,8 @@ trio = "*"
 flask = "*"
 kivy-garden-graph = "*"
 pyserial = "*"
+numpy = "*"
+scipy = "*"
 
 [requires]
 python_version = "3.8"

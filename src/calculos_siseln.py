@@ -23,9 +23,18 @@ def max_possible_PR2_value(F_osc: float, TMR2_prescaler: int) -> int:
 
     return int(F_osc / ((MAX_PR2 + 1) * 4 * TMR2_prescaler))
 
+
 def get_duty_cycle_from_CCPRxL_CCPxCON(CCPRxL: int, CCPxCON: int, PR2: int):
     """ Obtenemos el duty cycle a partir del contenido de los registros """
     return ((CCPRxL << 2) | ((CCPxCON >> 4) & 0b11)) / (4 * (PR2 + 1))
+
+
+def getSPBRGH_SPBRGL(F_osc: int, baudrate: int, SYNC: bool = False, BRG16: bool = False, BRGH: bool = False) -> int:
+    if not SYNC and not BRG16 and not BRGH:
+        return int(F_osc / baudrate/ 64) - 1
+    else:
+        raise NotImplementedError
+
 
 def getCCPRxL_CCPxCON(PR2_value, dutyCycle: float) -> Tuple[int, int]:
     """
@@ -54,6 +63,7 @@ if __name__ == "__main__":
 
     PR2 = getPR2value(PWM_freq, F_osc, TMR2_prescaler)
     print(f'Valor PR2: {PR2}')
+    print(f"Valor SPBRGH:SPBRGL: {getSPBRGH_SPBRGL(F_osc, baudrate=9600)}")
 
     print(get_freq_from_PR2(PR2, F_osc, TMR2_prescaler))
 
