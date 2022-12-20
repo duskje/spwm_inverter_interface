@@ -1,6 +1,6 @@
 from serial import Serial
 
-from calculos_siseln import getCCPRxL_CCPxCON, getPR2value
+from pic_formulas import getCCPRxL_CCPxCON, getPR2value
 
 from time import sleep
 

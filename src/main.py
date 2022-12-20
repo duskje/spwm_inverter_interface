@@ -18,51 +18,10 @@ from kivy_garden.graph import Graph, LinePlot
 from serial.tools.list_ports import comports
 from serial.tools.list_ports_common import ListPortInfo
 
-from calculos_siseln import getCCPRxL_CCPxCON, getPR2value, get_freq_from_PR2, get_duty_cycle_from_CCPRxL_CCPxCON
+from pic_formulas import getCCPRxL_CCPxCON, getPR2value, get_freq_from_PR2, get_duty_cycle_from_CCPRxL_CCPxCON
 
 from constants import PICValues
-from protocol import SerialPortStatus, SerialPort
-
-
-def generate_voltage_level_boost(frequency: float,
-                                 duty_cycle: float,
-                                 input_voltage: float,
-                                 cycles: int = 5,
-                                 loss: float = 0):
-    nyquist = 1 / (frequency * 2)
-    sampling_period = nyquist * (1 / 1000)
-    period = 1 / frequency
-    samples = int(cycles * period / sampling_period)
-
-    return [(t * sampling_period, (input_voltage / (1 - duty_cycle)) - loss) for t in range(samples)]
-
-
-def generate_pwm_pulse(frequency: float,
-                       duty_cycle: float,
-                       amplitude: float,
-                       cycles: int = 5):
-
-    nyquist = 1 / (frequency * 2)
-    sampling_period = nyquist * (1 / 1000)
-    period = 1 / frequency
-    samples = int(cycles * period / sampling_period)
-
-    time = (t * sampling_period for t in range(samples))
-    timeseries = []
-
-    for t in time:
-        time_since_last_period = t % period
-
-        if duty_cycle == 0:
-            voltage = 0
-        elif (time_since_last_period / period) - duty_cycle < sys.float_info.epsilon:
-            voltage = amplitude
-        else:
-            voltage = 0
-
-        timeseries.append((t, voltage))
-
-    return timeseries
+from serial_communication import SerialPortStatus, SerialPort
 
 
 class DeviceButton(Button):
@@ -81,11 +40,6 @@ class InverterGUI(FloatLayout):
     modulation_index = NumericProperty(.95)
 
     modulation_index_slider = ObjectProperty(None)
-    # _pwm_duty_cycle_slider = ObjectProperty(None)
-    # _pwm_frequency_slider = ObjectProperty(None)
-
-    # _pwm_graph: Optional[PWMGraph] = ObjectProperty(None)
-    # _output_voltage_graph: Optional[PWMGraph] = ObjectProperty(None)
 
     _send_button = ObjectProperty(None)
 
@@ -98,13 +52,8 @@ class InverterGUI(FloatLayout):
     def __init__(self):
         super().__init__()
 
-        # self._pwm_duty_cycle_slider.bind(value=self.on_duty_cycle_change)
-        # self._pwm_frequency_slider.bind(value=self.on_frequency_change)
         self._device_selection_button.bind(on_release=self.on_device_selection_released)
         self._disconnect_device_button.bind(on_release=self.disconnect_device)
-
-        # self.frequency = self._pwm_frequency_slider.value
-        # self.duty_cycle = self._pwm_duty_cycle_slider.value
 
         self.connected_devices = []
 
@@ -116,7 +65,8 @@ class InverterGUI(FloatLayout):
         Clock.schedule_interval(self.sync_device, 0.05)
 
     def set_bar_to_error(self, error_text: str):
-        pass
+        self._status_bar.color = (.6, .2, .2)
+        self._status_label.text = error_text
 
     def set_bar_to_success(self, success_text: str):
         self._status_label.text = success_text
@@ -129,23 +79,20 @@ class InverterGUI(FloatLayout):
             self.ready = False
         elif self.serial_port.status == SerialPortStatus.TIMEOUT_ERROR:
             # todo: set_bar_to_error
-            self._status_label.text = f'El dispositivo excedió el tiempo de espera.'
-            self._status_bar.color = (.6, .2, .2)
+            self.set_bar_to_error(f'El dispositivo excedió el tiempo de espera.')
 
             self.ready = False
         elif self.serial_port.status == SerialPortStatus.COULD_NOT_CONNECT_ERROR:
-            self._status_label.text = f'No se pudo conectar al dispositivo.'
-            self._status_bar.color = (.6, .2, .2)
+            self.set_bar_to_error(f'No se pudo conectar al dispositivo.')
 
             self.ready = False
         elif self.serial_port.status == SerialPortStatus.CONNECTED and self.ready:
-            self._status_label.text = f'Conectado al dispositivo en {self.serial_port.port_name}.'
-            self._status_bar.color = (.2, .6, .2)
+            self.set_bar_to_success(f'Conectado al dispositivo en {self.serial_port.port_name}.')
             self.serial_port.sync(self.modulation_index)
 
             self.ready = True
         elif self.serial_port.status == SerialPortStatus.DISCONNECTED:
-            self._status_label.text = f'Desconectado.'
+            self.set_bar_to_success(f'Desconectado.')
             self._status_bar.color = (.2, .6, .2)
 
             self.ready = False

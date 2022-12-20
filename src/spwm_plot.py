@@ -59,14 +59,7 @@ def generate_spwm_signals(M: float, frequency: float, cycles: int, samples_per_c
 class SISELNGraph(Graph):
     def __init__(self, **kwargs):
         super().__init__(
-#            xlabel='Tiempo (s)',
-#            ylabel='Voltaje (V)',
-
             padding=20,
-
-#            y_ticks_major=2.5,
-#            x_ticks_major=1,
-
             x_grid=True,
             y_grid=True,
             x_grid_label=True,

@@ -4,7 +4,7 @@ from itertools import tee
 from dataclasses import dataclass
 from typing import Iterable
 
-from calculos_siseln import getPR2value, getCCPRxL_CCPxCON
+from pic_formulas import getPR2value, getCCPRxL_CCPxCON
 
 from pathlib import Path
 

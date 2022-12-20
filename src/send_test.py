@@ -2,7 +2,7 @@ from enum import Enum
 
 from serial import Serial, STOPBITS_ONE, EIGHTBITS, PARITY_NONE
 
-from protocol import MsgType, CouldNotConnectToDeviceError
+from serial_communication import MsgType, CouldNotConnectToDeviceError
 
 from time import sleep
 

@@ -7,7 +7,7 @@ from typing import Optional, Tuple, Any
 from serial import Serial, SerialException
 from serial.tools.list_ports_common import ListPortInfo
 
-from calculos_siseln import getPR2value, getCCPRxL_CCPxCON
+from pic_formulas import getPR2value, getCCPRxL_CCPxCON
 from constants import PICValues
 
 
@@ -40,52 +40,6 @@ class SerialResult:
     def is_error(self):
         return isinstance(self.value, Exception)
 
-
-# def conn(port_name: str, baudrate: int, timeout: float):
-#     serial_port = Serial(
-#         port_name,
-#         baudrate,
-#         timeout=timeout,
-#         write_timeout=0
-#     )
-#
-#     with serial_port as s:
-#         msg_len = s.read()
-#
-#         if msg_len:
-#             data = s.read(int(msg_len[0]))
-#
-#             if data[0] != MsgType.CONN:
-#                 raise CouldNotConnectToDeviceError('CONN no recibido.')
-#         else:
-#             raise CouldNotConnectToDeviceError('CONN timeout.')
-#
-#         msg_len = 1
-#
-#         s.write(bytearray([msg_len, MsgType.ACK]))
-#
-#         msg_len = s.read()
-#
-#         if msg_len:
-#             data = s.read(int(msg_len[0]))
-#
-#             if data[0] != MsgType.SYNC:
-#                 raise CouldNotConnectToDeviceError('SYNC no recibido.')
-#
-#             print(msg_len[0])
-#             print(data)
-#
-#             PR2, CCPRxL, CCPxCON = [int(byte) for byte in data[1:]]
-#         else:
-#             raise CouldNotConnectToDeviceError('SYNC timeout.')
-#
-#         msg_len = 1
-#
-#         s.write(bytearray([msg_len, MsgType.ACK]))
-#
-#         print('pr2, ccprxl, ccpxcon', PR2, CCPRxL, CCPxCON)
-#
-#         return PR2, CCPRxL, CCPxCON
 
 class ModulationIndex(Enum):
     MODULATION_INDEX_80 = 0
@@ -166,36 +120,6 @@ def conn(port_name: str, baudrate: int, timeout: float):
         return modulation_index
 
 
-# def sync(s, frequency: float, duty_cycle: float):
-#     msg_len = s.read()
-#
-#     if msg_len:
-#         data = s.read(int(msg_len[0]))
-#
-#         if data[0] != MsgType.FETCH:
-#             print('fetch not')
-#             print(data[0] == MsgType.CONN)
-#             raise CouldNotConnectToDeviceError('FETCH no recibido.')
-#     else:
-#         print('fetch timeout')
-#         raise CouldNotConnectToDeviceError('FETCH timeout.')
-#
-#     PR2 = getPR2value(frequency, PICValues.F_OSC, PICValues.TMR2_PRESCALER)
-#     CCPRxL, CCPxCON = getCCPRxL_CCPxCON(PR2, duty_cycle)
-#
-#     msg_len = 4
-#
-#     s.write(bytearray([msg_len, MsgType.SYNC, PR2, CCPRxL, CCPxCON]))
-#
-#     msg_len = s.read(1)
-#
-#     if msg_len:
-#         data = s.read(int(msg_len[0]))
-#
-#         if data[0] != MsgType.ACK:
-#             raise CouldNotConnectToDeviceError('ACK no recibido.')
-#     else:
-#         raise CouldNotConnectToDeviceError('ACK timeout.')
 
 def sync(s: Serial, modulation_index: ModulationIndex):
     send_sync_message(s, modulation_index)
@@ -208,7 +132,7 @@ def serial_communication(
         result_queue: Queue,
 
         baudrate: int = 9600,
-        timeout: float = 5,
+        timeout: float = 0.5,
 ):
     connected_port: Optional[ListPortInfo] = None
 
@@ -270,8 +194,6 @@ def serial_communication(
                 )
 
                 with serial_port as s:
-                    s.read()
-
                     msg_len = 1
 
                     s.write(bytearray([msg_len, MsgType.EXIT]))
@@ -293,7 +215,7 @@ class SerialPortStatus(Enum):
 
 
 class SerialPort:
-    def __init__(self, baudrate: int = 9600, timeout: float = 5):
+    def __init__(self, baudrate: int = 9600, timeout: float = 0.5):
         # Se crean dos colas para comunic
 
         self.message_queue = Queue(maxsize=1)
