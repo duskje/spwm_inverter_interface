@@ -9,8 +9,6 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy_garden.graph import LinePlot, VBar, Graph
 from scipy import signal
 
-from itertools import tee
-
 
 SPWMSignals = namedtuple('SPWMSignals',
                          ['t',

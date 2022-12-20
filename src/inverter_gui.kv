@@ -1,15 +1,7 @@
 #:import SPWMGraphWidget spwm_plot.SPWMGraphWidget
 
 <InverterGUI>:
-    # _pwm_duty_cycle_slider: pwm_duty_cycle_slider
-    # _pwm_frequency_slider: pwm_frequency_slider
     modulation_index_slider: modulation_index_slider
-
-    # _pwm_duty_cycle_label: pwm_duty_cycle_label
-    # _pwm_frequency_label: pwm_frequency_label
-
-    #_pwm_graph: pwm_graph
-    # _output_voltage_graph: output_voltage_graph
 
     _device_selection_button: device_selection_button
     _disconnect_device_button: disconnect_device_button
@@ -35,24 +27,6 @@
                     id: spwm_graph_widget
 
                     size_hint: 1, .8
-
-                # Label:
-                #     text: "Tensión de salida"
-
-                # VoltageOutputGraph:
-                #     id: output_voltage_graph
-
-                #     size_hint: 1, None
-                #     height: 200
-
-                # Label:
-                #     text: "Pulso PWM"
-
-                # PWMGraph
-                #     id: pwm_graph
-
-                #     size_hint: 1, None
-                #     height: 200
 
                 Label:
                     color: (0, 0, 0, 1)
@@ -89,23 +63,6 @@
 
                         text: "{:.2f}".format(modulation_index_slider.value)
 
-
-#                Label:
-#                    text: "Frecuencia"
-#
-#                BoxLayout:
-#                    Slider:
-#                        id: pwm_frequency_slider
-#
-#                        min: root.MIN_FREQ
-#                        max: root.MAX_FREQ
-#
-#                        value: 20e3
-#
-#                        on_value: pwm_frequency_label.text = "{} Hz".format(int(pwm_frequency_slider.value))
-#                    Label:
-#                        id: pwm_frequency_label
-#                        text: "20000 Hz"
 
             BoxLayout:
                 orientation: 'vertical'

@@ -1,9 +1,3 @@
-import sys
-
-from typing import Iterable, Optional, List, Tuple, Any, Union
-
-from math import pi, sin, log
-
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.properties import BoundedNumericProperty, ObjectProperty, NumericProperty
@@ -13,12 +7,8 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.lang.builder import Builder
 from kivy.logger import Logger
 
-from kivy_garden.graph import Graph, LinePlot
-
 from serial.tools.list_ports import comports
 from serial.tools.list_ports_common import ListPortInfo
-
-from pic_formulas import getCCPRxL_CCPxCON, getPR2value, get_freq_from_PR2, get_duty_cycle_from_CCPRxL_CCPxCON
 
 from constants import PICValues
 from serial_communication import SerialPortStatus, SerialPort
@@ -78,7 +68,6 @@ class InverterGUI(FloatLayout):
 
             self.ready = False
         elif self.serial_port.status == SerialPortStatus.TIMEOUT_ERROR:
-            # todo: set_bar_to_error
             self.set_bar_to_error(f'El dispositivo excedió el tiempo de espera.')
 
             self.ready = False

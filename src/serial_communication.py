@@ -7,9 +7,6 @@ from typing import Optional, Tuple, Any
 from serial import Serial, SerialException
 from serial.tools.list_ports_common import ListPortInfo
 
-from pic_formulas import getPR2value, getCCPRxL_CCPxCON
-from constants import PICValues
-
 
 class MsgType(IntEnum):
     CONN = 1
