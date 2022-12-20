@@ -65,164 +65,27 @@ def generate_pwm_pulse(frequency: float,
     return timeseries
 
 
-def generate_sin(amplitude: float, frequency: float):
-    t = (t * 0.001 for t in range(2000))
-
-    return [(t, amplitude * sin(2 * pi * frequency * t)) for t in t]
-
-
-class SISELNGraph(Graph):
-    def __init__(self, **kwargs):
-        super().__init__(
-            xlabel='Tiempo (s)',
-            ylabel='Voltaje (V)',
-
-            padding=10,
-
-            y_ticks_major=2.5,
-            x_ticks_major=1,
-
-            x_grid=True,
-            y_grid=True,
-            x_grid_label=True,
-            y_grid_label=True,
-
-            xmin=0,
-            xmax=0.000002,
-            **kwargs
-        )
-
-        # Colores
-        self.background_color = [0.9, 0.9, 1, 1]
-        self.tick_color = [0.3, 0.3, 0.3, .7]
-        self.border_color = [0, 0, 0, .7]
-        self.label_options = {'color': [0, 0, 0, 1]}
-        self.border_color = [0.3, 0.3, 0.3, 1]
-
-
-class VoltageOutputGraph(SISELNGraph):
-    voltage_input = NumericProperty(12)
-    voltage_loss = NumericProperty(2)
-
-    frequency = BoundedNumericProperty(
-        20e3,
-        min=PICValues.MIN_FREQ,
-        max=PICValues.MAX_FREQ
-    )
-
-    duty_cycle = BoundedNumericProperty(
-        0.5,
-        min=PICValues.MIN_DUTY_CYCLE - .1,
-        max=PICValues.MAX_DUTY_CYCLE + .1
-    )
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-        self.ymin = 10
-        self.ymax = 26
-
-        self.plot = LinePlot(color=[1, 0, 0, 1],
-                             line_width=2)
-
-        self.plot.points = generate_voltage_level_boost(
-            self.frequency,
-            self.duty_cycle,
-            5,
-            loss=self.voltage_loss,
-        )
-
-        self.period = 1 / self.frequency
-
-        self._redraw_trigger = Clock.create_trigger(lambda *_: self._redraw_plot())
-
-        self.add_plot(self.plot)
-
-    def _redraw_plot(self, init: bool = False):
-        # if not init:
-        #     self.remove_plot(self.plot)
-
-        self.plot.points = generate_voltage_level_boost(
-            self.frequency,
-            self.duty_cycle,
-            12,
-            loss=self.voltage_loss,
-        )
-
-        self.x_ticks_major = 10 ** log(self.period, 10)
-        self.xmax = self.period * 5
-
-        self.plot.draw()
-
-    def on_duty_cycle(self, *_):
-        self._redraw_trigger()
-
-    def on_frequency(self, *_):
-        self.period = 1 / self.frequency
-
-        self._redraw_trigger()
-
-
-class PWMGraph(SISELNGraph):
-    frequency = BoundedNumericProperty(
-        20e3,
-        min=PICValues.MIN_FREQ,
-        max=PICValues.MAX_FREQ,
-    )
-
-    duty_cycle = BoundedNumericProperty(
-        0.5,
-        min=PICValues.MIN_DUTY_CYCLE - .1,
-        max=PICValues.MAX_DUTY_CYCLE + .1,
-    )
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-        self.ymin = -1
-        self.ymax = 6
-
-        self.plot = LinePlot(color=[1, 0, 0, 1],
-                             line_width=2)
-        self.add_plot(self.plot)
-
-        self.period = 1 / self.frequency
-
-        self._redraw_trigger = Clock.create_trigger(lambda *_: self._redraw_plot())
-        self._redraw_plot(init=True)
-
-    def _redraw_plot(self, init: bool = False):
-        self.plot.points = generate_pwm_pulse(self.frequency, self.duty_cycle, 5)
-        self.x_ticks_major = 10 ** log(self.period, 10)
-        self.xmax = self.period * 5
-
-        self.plot.draw()
-
-    def on_duty_cycle(self, *_):
-        self._redraw_trigger()
-
-    def on_frequency(self, *_):
-        self.period = 1 / self.frequency
-
-        self._redraw_trigger()
-
-
 class DeviceButton(Button):
     device = ObjectProperty(None)
 
 
-class DCDCConverterGUI(FloatLayout):
+class InverterGUI(FloatLayout):
     MAX_FREQ = NumericProperty(PICValues.MAX_FREQ)
     MIN_FREQ = NumericProperty(PICValues.MIN_FREQ)
 
     MAX_DUTY_CYCLE = NumericProperty(PICValues.MAX_DUTY_CYCLE)
     MIN_DUTY_CYCLE = NumericProperty(PICValues.MIN_DUTY_CYCLE)
 
-    _pwm_duty_cycle_slider = ObjectProperty(None)
-    _pwm_frequency_slider = ObjectProperty(None)
+    MIN_MODULATION_INDEX = NumericProperty(PICValues.MIN_MODULATION_INDEX)
+    MAX_MODULATION_INDEX = NumericProperty(PICValues.MAX_MODULATION_INDEX)
+    modulation_index = NumericProperty(.95)
 
-    _pwm_graph: Optional[PWMGraph] = ObjectProperty(None)
-    _output_voltage_graph: Optional[PWMGraph] = ObjectProperty(None)
+    modulation_index_slider = ObjectProperty(None)
+    # _pwm_duty_cycle_slider = ObjectProperty(None)
+    # _pwm_frequency_slider = ObjectProperty(None)
+
+    # _pwm_graph: Optional[PWMGraph] = ObjectProperty(None)
+    # _output_voltage_graph: Optional[PWMGraph] = ObjectProperty(None)
 
     _send_button = ObjectProperty(None)
 
@@ -235,13 +98,13 @@ class DCDCConverterGUI(FloatLayout):
     def __init__(self):
         super().__init__()
 
-        self._pwm_duty_cycle_slider.bind(value=self.on_duty_cycle_change)
-        self._pwm_frequency_slider.bind(value=self.on_frequency_change)
+        # self._pwm_duty_cycle_slider.bind(value=self.on_duty_cycle_change)
+        # self._pwm_frequency_slider.bind(value=self.on_frequency_change)
         self._device_selection_button.bind(on_release=self.on_device_selection_released)
         self._disconnect_device_button.bind(on_release=self.disconnect_device)
 
-        self.frequency = self._pwm_frequency_slider.value
-        self.duty_cycle = self._pwm_duty_cycle_slider.value
+        # self.frequency = self._pwm_frequency_slider.value
+        # self.duty_cycle = self._pwm_duty_cycle_slider.value
 
         self.connected_devices = []
 
@@ -265,6 +128,7 @@ class DCDCConverterGUI(FloatLayout):
 
             self.ready = False
         elif self.serial_port.status == SerialPortStatus.TIMEOUT_ERROR:
+            # todo: set_bar_to_error
             self._status_label.text = f'El dispositivo excedió el tiempo de espera.'
             self._status_bar.color = (.6, .2, .2)
 
@@ -277,8 +141,7 @@ class DCDCConverterGUI(FloatLayout):
         elif self.serial_port.status == SerialPortStatus.CONNECTED and self.ready:
             self._status_label.text = f'Conectado al dispositivo en {self.serial_port.port_name}.'
             self._status_bar.color = (.2, .6, .2)
-
-            self.serial_port.sync(self.frequency, self.duty_cycle)
+            self.serial_port.sync(self.modulation_index)
 
             self.ready = True
         elif self.serial_port.status == SerialPortStatus.DISCONNECTED:
@@ -294,6 +157,9 @@ class DCDCConverterGUI(FloatLayout):
 
         self.duty_cycle = duty_cycle
 
+    def on_modulation_index(self, *_):
+        print(int(self.modulation_index * 100))
+
     def on_frequency_change(self, _, frequency: float):
         self._pwm_graph.frequency = frequency
         self._output_voltage_graph.frequency = frequency
@@ -306,7 +172,7 @@ class DCDCConverterGUI(FloatLayout):
 
         drop_down_menu.clear_widgets()
 
-        # Por cada dispositivo conectado, crea un butón
+        # Por cada dispositivo conectado, crea un botón
         for device in self.connected_devices:
             new_button = DeviceButton(size_hint_y=None,
                                       text=device.name,
@@ -348,22 +214,10 @@ class DCDCConverterGUI(FloatLayout):
         if connection_result is None:
             return
 
-        """ 
-        Si la conexión se realiza con éxito, obtiene los valores de los registro del PIC y 
-        se calculan los valores de frecuencia y duty cycle correspondientes a los valores 
-        """
-
-        self.sync_device()
-
-        PR2, CCPRxL, CCPxCON = connection_result
-
-        frequency = get_freq_from_PR2(PR2, PICValues.F_OSC, PICValues.TMR2_PRESCALER)
-        duty_cycle = get_duty_cycle_from_CCPRxL_CCPxCON(CCPRxL, CCPxCON, PR2)
-
-        self.set_frequency(frequency)
-        self.set_duty_cycle(duty_cycle)
+        self.modulation_index = connection_result
 
         self.ready = True
+
 
     def disconnect_device(self, *_):
         self.serial_port.exit()
@@ -373,12 +227,12 @@ class DCDCConverterGUI(FloatLayout):
         Logger.info('Dispositivo desconectado')
 
 
-Builder.load_file('dcdcconvertergui.kv')
+Builder.load_file('inverter_gui.kv')
 
 
 class PWMControllerApp(App):
     def build(self):
-        return DCDCConverterGUI()
+        return InverterGUI()
 
 
 if __name__ == '__main__':
