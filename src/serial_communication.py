@@ -7,6 +7,7 @@ from typing import Optional, Tuple, Any
 from serial import Serial, SerialException
 from serial.tools.list_ports_common import ListPortInfo
 
+from spwm_indices import ModulationIndex
 
 class MsgType(IntEnum):
     CONN = 1
@@ -36,25 +37,6 @@ class SerialResult:
     @property
     def is_error(self):
         return isinstance(self.value, Exception)
-
-
-class ModulationIndex(Enum):
-    MODULATION_INDEX_80 = 0
-    MODULATION_INDEX_81 = 1
-    MODULATION_INDEX_82 = 2
-    MODULATION_INDEX_83 = 3
-    MODULATION_INDEX_84 = 4
-    MODULATION_INDEX_85 = 5
-    MODULATION_INDEX_86 = 6
-    MODULATION_INDEX_87 = 7
-    MODULATION_INDEX_88 = 8
-    MODULATION_INDEX_89 = 9
-    MODULATION_INDEX_90 = 10
-    MODULATION_INDEX_91 = 11
-    MODULATION_INDEX_92 = 12
-    MODULATION_INDEX_93 = 13
-    MODULATION_INDEX_94 = 14
-    MODULATION_INDEX_95 = 15
 
 
 def send_conn_message(s: Serial):
@@ -260,10 +242,10 @@ class SerialPort:
             self.status = SerialPortStatus.CONNECTED
             modulation_index: ModulationIndex = result.value
 
-            return (modulation_index.value + 80) / 100
+            return (modulation_index.value * 5 + 20) / 100
 
     def sync(self, modulation_index: float):
-        modulation_index = ModulationIndex(int(modulation_index * 100 - 80))
+        modulation_index = ModulationIndex(int(modulation_index * 100 - 20) / 5)
 
         if not self.result_queue.empty():
             result = self.result_queue.get()

@@ -115,7 +115,7 @@ class ComparatorGraph(SISELNGraph):
         self.x_ticks_minor = 6
 
         self.y_ticks_major = 0.5
-        self.y_ticks_minor = 3
+        self.y_ticks_minor = 1
 
     def on_intersects(self, *_):
         self.intersects_plot.points = self.intersects

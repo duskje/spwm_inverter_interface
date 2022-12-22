@@ -11,9 +11,9 @@ class PICValues:
     MIN_DUTY_CYCLE: float = .10
     MAX_DUTY_CYCLE: float = .57
 
-    MIN_MODULATION_INDEX: float = 0.80
+    MIN_MODULATION_INDEX: float = 0.20
     MAX_MODULATION_INDEX: float = 0.95
-
+    STEP_MODULATION_INDEX: float = 0.05
 
     """ Valores de configureción del microcontrolador """
 

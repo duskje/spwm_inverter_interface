@@ -27,6 +27,8 @@ class InverterGUI(FloatLayout):
 
     MIN_MODULATION_INDEX = NumericProperty(PICValues.MIN_MODULATION_INDEX)
     MAX_MODULATION_INDEX = NumericProperty(PICValues.MAX_MODULATION_INDEX)
+    STEP_MODULATION_INDEX = NumericProperty(PICValues.STEP_MODULATION_INDEX)
+
     modulation_index = NumericProperty(.95)
 
     modulation_index_slider = ObjectProperty(None)

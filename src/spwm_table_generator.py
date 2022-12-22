@@ -85,31 +85,43 @@ def write_spwm_header_file(switching_frequency: float, output_frequency: float, 
         f.write('#include <stdint.h>\n\n')
         f.write(f'#define SPWM_TABLE_SIZE {N}\n\n')
         # f.write(generate_sin_table(switching_frequency, output_frequency))
-        for mod in range(80, 96):
+
+        for mod in range(20, 96, 5):
             f.write(generate_CCPRxL_CCPxCON(int(32e6), switching_frequency, output_frequency, mod / 100))
 
         f.write("const uint8_t *ccprxl_tables[16] = {\n")
 
-        for mod in range(80, 95):
+        for mod in range(20, 95, 5):
             f.write(f'ccprxl_values_for_{mod},\n')
 
         f.write('ccprxl_values_for_95\n};\n\n')
 
         f.write("const uint8_t *ccpxcon_tables[16] = {\n")
 
-        for mod in range(80, 95):
+        for mod in range(20, 95, 5):
             f.write(f'ccpxcon_values_for_{mod},\n')
 
         f.write('ccpxcon_values_for_95\n};\n\n')
 
         f.write('typedef enum modulation_index_tables {\n')
 
-        for i, mod in enumerate(range(80, 95)):
+        for i, mod in enumerate(range(20, 95, 5)):
             f.write(f'MODULATION_INDEX_{mod} = {i},\n')
 
         f.write('MODULATION_INDEX_95 = 15\n} modulation_index_tables_enum;\n\n')
 
         f.write('#endif')
+
+    with open('./spwm_indices.py', 'w+') as f:
+        f.write('from enum import Enum\n\n\n')
+        f.write('class ModulationIndex(Enum):\n')
+
+        indent = ' ' * 4
+
+        for i, mod in enumerate(range(20, 96, 5)):
+            f.write(indent + f"MODULATION_INDEX_{mod} = {i}\n")
+
+        f.write('\n')
 
 
 def get_duty_cycle_samples(switching_frequency: float, output_frequency:float, M: float):
@@ -122,8 +134,8 @@ def get_duty_cycle_samples(switching_frequency: float, output_frequency:float, M
     duty_cycle_samples = []
 
     for k in range(N):
-        if (k + 1) >= len(sin_samples):
-            break
+        if (k + 1) == len(sin_samples):
+            k = 0
 
         t_on1 = (switching_period / 4) * (1 + M * sin_samples[k])
         t_on2 = (switching_period / 4) * (1 + M * sin_samples[k + 1])
@@ -137,7 +149,8 @@ def get_duty_cycle_samples(switching_frequency: float, output_frequency:float, M
 
 if __name__ == "__main__":
     switching_frequency_hz = 40e3
-    output_frequency_hz = 50
+
+    output_frequency_hz = 100
 
     # duty_cycle_samples = get_duty_cycle_samples(switching_frequency_hz, output_frequency_hz, 0.1)
     # print(duty_cycle_samples)
